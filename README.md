@@ -1,28 +1,5 @@
 # Learner pathway modeling information for massive open online learning (MOOC) workforce trainings.
 
-### Load data helper file
-The ```data_parsing.py``` does two things.
-1. The ```get_trajectory()``` function binds an ascending order number to course material URLs into a list.  The order number is aligned with the order of the course design.  The order number is returned.
-2. The ```load_trajectories()``` reads in multiple learner log data files.  A list of lists of trajectories are returned grouped by student user ids.
-```python
-def get_trajectory(df):
-    order = [0]
-    for url in df['order']:
-        if url != order[-1]:
-            order.append(url)
-    order.append(0)
-    return order
-
-def load_trajectories(folder_path):
-	trajectories = []
-
-	for fname in glob(folder_path + '/*.csv'):
-	    df = pd.read_csv(fname)
-	    trajectories.append(df)
-	    
-	trajectories = pd.concat(trajectories)
-	return trajectories.groupby('user_id').apply(get_trajectory)
-```
 
   
 ## Model Overview
@@ -68,3 +45,29 @@ The model converts a trajectory to an embedded vector representation which is th
 
 ### Conditional Trajectory LSTM Model
 To expand upon the intial model, and attempt was made to understand if the choices of successful and non-successful learners differ. The embedding and LSTM are processed as before.  In the conditional model a second embedding is also learned that provides a vector of weights to multiply against the LSTM output.  This acts as a mask like operation, effectively upweighting and down weighting different parts of information from the possible next URL choice.  The output of this multiplication is then past through a Dense layer with softmax as before.
+
+
+### Run with the following
+### file imports
+```
+from data_parsing import DataParser
+from models import LSTM_model
+from preprocessing import DataGenerator
+
+```
+### parsing
+```
+data = DataParser('file_1', 'file_2')
+
+```
+### run the generators
+```
+generator = DataGenerator(data.trajectories, data.status)
+
+```
+### run the models
+```
+model = LSTM_model(generator.num_URLs)
+model.train(generator)
+
+```

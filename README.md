@@ -1,28 +1,5 @@
 # Learner pathway modeling information for massive open online learning (MOOC) workforce trainings.
 
-### Load data helper file
-The ```data_parsing.py``` does two things.
-1. The ```get_trajectory()``` function binds an ascending order number to course material URLs into a list.  The order number is aligned with the order of the course design.  The order number is returned.
-2. The ```load_trajectories()``` reads in multiple learner log data files.  A list of lists of trajectories are returned grouped by student user ids.
-```python
-def get_trajectory(df):
-    order = [0]
-    for url in df['order']:
-        if url != order[-1]:
-            order.append(url)
-    order.append(0)
-    return order
-
-def load_trajectories(folder_path):
-	trajectories = []
-
-	for fname in glob(folder_path + '/*.csv'):
-	    df = pd.read_csv(fname)
-	    trajectories.append(df)
-	    
-	trajectories = pd.concat(trajectories)
-	return trajectories.groupby('user_id').apply(get_trajectory)
-```
 
   
 ## Model Overview
@@ -57,7 +34,7 @@ For the purpose of clustering only, vectorization of the counts of transitions b
 
 The k-medoid algorithm is used to cluster these vectors for various values of k.  The elbow method is used on inter-cluster variance to determine k = 4 is the most natural clustering.
 
-View analysis [here](https://github.com/rebecca-my/online_learner_trajectory_modeling/clustering analysis/trajectory_clustering.ipynb)
+View analysis [here](https://github.com/rebecca-my/online_learner_trajectory_modeling/blob/main/clustering_analysis/trajectory_clustering.ipynb)
 
 ### Baseline Model
 For the baseline model observation of sequences of URLs within a given trajectory.  At its simplest level predictions are made on the most likely next URL based only on the current URL only.  This is a Markov model with no hidden state.
@@ -68,3 +45,29 @@ The model converts a trajectory to an embedded vector representation which is th
 
 ### Conditional Trajectory LSTM Model
 To expand upon the intial model, and attempt was made to understand if the choices of successful and non-successful learners differ. The embedding and LSTM are processed as before.  In the conditional model a second embedding is also learned that provides a vector of weights to multiply against the LSTM output.  This acts as a mask like operation, effectively upweighting and down weighting different parts of information from the possible next URL choice.  The output of this multiplication is then past through a Dense layer with softmax as before.
+
+
+### Run with the following
+### file imports
+```
+from data_parsing import DataParser
+from models import LSTM_model
+from preprocessing import DataGenerator
+
+```
+### parsing
+```
+data = DataParser('file_1', 'file_2')
+
+```
+### run the generators
+```
+generator = DataGenerator(data.trajectories, data.status)
+
+```
+### run the models
+```
+model = LSTM_model(generator.num_URLs)
+model.train(generator)
+
+```

@@ -51,7 +51,7 @@ To expand upon the intial model, and attempt was made to understand if the choic
 ### file imports
 ```
 from data_parsing import DataParser
-from models import LSTM_model
+from traj_models import LSTM_model
 from preprocessing import DataGenerator
 
 ```
